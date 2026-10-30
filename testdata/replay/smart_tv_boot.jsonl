@@ -1,0 +1,13 @@
+{"comment": "Hand-written: several TVs ask the same uncached names at the same moment (coalescing)."}
+{"t_ms": 0, "client": "192.168.1.50", "name": "tv-boot.googleapis.com.", "qtype": "A", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.50", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.51", "name": "tv-boot.googleapis.com.", "qtype": "A", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.51", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.52", "name": "tv-boot.googleapis.com.", "qtype": "A", "do_bit": true, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.52", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.53", "name": "tv-boot.googleapis.com.", "qtype": "A", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.53", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.54", "name": "tv-boot.googleapis.com.", "qtype": "A", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.54", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.60", "name": "tv-boot.googleapis.com.", "qtype": "A", "do_bit": false, "edns_size": 1232, "concurrent": true}
+{"t_ms": 0, "client": "192.168.1.60", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232, "concurrent": true}

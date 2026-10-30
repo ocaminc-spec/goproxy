@@ -1,0 +1,395 @@
+<!-- Copyright (c) 2026 Ocam. SPDX-License-Identifier: AGPL-3.0-only -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#111214" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230071e3%22/%3E%3Cpath d=%22M16 7l9 9-9 9-9-9z%22 fill=%22white%22/%3E%3C/svg%3E"><title>GoProxy DNS</title>
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#f5f5f7,#111214);--surface:light-dark(#ffffff,#1a1b1e);--surface2:light-dark(#f2f2f5,#232428);--edge:light-dark(rgba(0,0,0,.06),rgba(255,255,255,.07));
+--text:light-dark(#1d1d1f,#ececee);--muted:light-dark(#6e6e73,#9a9aa2);--faint:light-dark(#aeaeb2,#5c5d63);
+--accent:light-dark(#0071e3,#4c9dff);--green:light-dark(#1f9d45,#3fd16b);--amber:light-dark(#b26a00,#ffb340);--red:light-dark(#d1291c,#ff6b5e);--purple:light-dark(#7d4dd8,#b18cff);
+--shadow:light-dark(0 1px 2px rgba(0,0,0,.04),0 0 0 1px rgba(255,255,255,.06));--r:16px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI Variable","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 20px 40px}
+header{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:24px;font-weight:650;letter-spacing:-.02em;margin:0;display:flex;align-items:center;gap:10px}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:grid;place-items:center;color:#fff;font-size:15px}
+.sub{color:var(--muted);font-size:12.5px;margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);display:inline-block}.dot.up{background:var(--green)}.dot.slow{background:var(--amber)}.dot.down{background:var(--red)}
+.ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:3px}.seg button{border:0;background:none;color:var(--muted);font:inherit;font-weight:500;padding:5px 13px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.sw{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.tog{width:42px;height:25px;border-radius:13px;background:light-dark(#d1d1d6,#3a3b40);position:relative;transition:.2s;cursor:pointer;border:0;flex:none}
+.tog.on{background:var(--green)}
+.tog:disabled{opacity:.45;cursor:not-allowed}.tog::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}.tog.on::after{left:19px}
+.grid{display:grid;gap:14px;margin-bottom:14px}
+.kpis{grid-template-columns:repeat(7,minmax(0,1fr))}
+.g2{grid-template-columns:2fr 1fr}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;min-width:0}
+.lbl{font-size:11.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
+.big{font-size:28px;font-weight:650;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+.small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q{width:17px;height:17px;border-radius:50%;border:1px solid var(--faint);background:none;color:var(--muted);font:600 10.5px/15px system-ui;padding:0;cursor:pointer;flex:none;text-transform:none;letter-spacing:0}
+.q:hover,.q.open{background:var(--accent);border-color:var(--accent);color:#fff}
+#pop{position:fixed;z-index:50;max-width:300px;background:var(--surface);color:var(--text);border-radius:12px;padding:12px 14px;box-shadow:0 10px 40px rgba(0,0,0,.18),0 0 0 1px var(--edge);font-size:13px;display:none}
+#pop b{display:block;margin-bottom:4px;font-size:13.5px}#pop .good{margin-top:8px;padding-top:8px;border-top:1px solid var(--edge);color:var(--muted);font-size:12.5px}#pop .good::before{content:"✓ Good value: ";color:var(--green);font-weight:600}
+canvas{width:100%;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.bar{height:6px;background:var(--surface2);border-radius:4px;overflow:hidden}.bar>div{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0}.row+.row{border-top:1px solid var(--edge)}
+.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.fav{width:16px;height:16px;border-radius:4px;vertical-align:-3px;margin-right:7px;background:var(--surface2);object-fit:contain}
+.pill{font-size:11px;padding:1px 8px;border-radius:9px;font-weight:550;white-space:nowrap}
+.cached{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green)}.stale{background:color-mix(in srgb,var(--amber) 16%,transparent);color:var(--amber)}
+.refreshed{background:color-mix(in srgb,var(--purple) 16%,transparent);color:var(--purple)}.blocked{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.forwarded{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}.failed{background:var(--surface2);color:var(--muted)}
+.btn{border:0;font:inherit;font-size:12.5px;font-weight:550;padding:6px 12px;border-radius:9px;cursor:pointer;background:var(--surface2);color:var(--text)}.btn:hover{filter:brightness(.96)}
+.btn.danger{color:var(--red)}.btn:disabled{opacity:.5;cursor:default}
+.hist{display:flex;align-items:flex-end;gap:4px;height:120px}.hist div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.hist span{width:100%;background:var(--accent);border-radius:4px 4px 2px 2px;min-height:2px;transition:height .4s}.hist em{font-style:normal;font-size:10px;color:var(--muted);margin-top:4px;white-space:nowrap}
+.gauge{position:relative;width:120px;height:120px;margin:0 auto}.gauge svg{transform:rotate(-90deg)}.gauge .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.cores{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px}.cores div{height:46px;background:var(--surface2);border-radius:6px;position:relative;overflow:hidden}
+.cores span{position:absolute;bottom:0;left:0;right:0;background:var(--accent);transition:height .3s}.cores em{position:absolute;inset:auto 0 2px;text-align:center;font:600 10px system-ui;font-style:normal;color:var(--text);mix-blend-mode:normal}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);padding:4px 10px 6px 0}td{padding:6px 10px 6px 0;border-top:1px solid var(--edge)}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono",Menlo,monospace;font-size:12px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px}.kv div:nth-child(odd){color:var(--muted);display:flex;align-items:center;gap:6px}.kv div:nth-child(even){font-weight:550;text-align:right;font-variant-numeric:tabular-nums}
+.grp{font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:12px;background:var(--surface2);padding:3px 9px;border-radius:8px}.chip.auto{opacity:.75}
+.hidden{display:none!important}
+#vpane h2{font-size:19px;margin:28px 0 8px;padding-top:20px;border-top:1px solid var(--edge)}#vpane h2:first-child{border:0;padding:0;margin-top:0}#vpane h3{font-size:14px;color:var(--muted);margin:6px 0}#vpane li{margin:3px 0}#vpane code{background:var(--surface2);border-radius:5px;padding:0 4px;font-size:12.5px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){.wrap{padding:14px 12px 30px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.g2,.g3{grid-template-columns:1fr}.big{font-size:24px}h1{font-size:21px}.ctl{gap:10px;width:100%;justify-content:space-between}.hide-sm{display:none}td,th{padding-right:6px}}
+
+.hs{display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:start}
+@media(max-width:700px){.hs{grid-template-columns:1fr}}
+.hsring{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;margin:auto;background:conic-gradient(var(--hc,var(--green)) calc(var(--hv,0)*1%),var(--surface2) 0)}
+.hsring>div{width:108px;height:108px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center}
+.hsring b{font:700 38px/1 system-ui;display:block}.hsring span{font-size:11px;color:var(--muted)}
+.hsrows{position:relative}
+.hsrow{display:grid;grid-template-columns:118px 34px 1fr;gap:10px;align-items:center;height:30px}
+.hsrow .nm{display:flex;gap:5px;align-items:center;font-size:12.5px;color:var(--muted)}.hsrow .sc{font:600 13px system-ui;text-align:right}
+.hsbar{display:flex;gap:1px;height:12px;border-radius:4px;overflow:hidden}
+.hsbar i{flex:1;background:var(--surface2)}.hsbar i.g{background:var(--green)}.hsbar i.y{background:var(--amber)}.hsbar i.r{background:var(--red)}
+.hsline{position:absolute;top:0;bottom:-6px;width:0;border-left:1.5px dashed var(--text);opacity:.55;pointer-events:none}
+.hstrack{position:relative;height:44px;margin-left:172px;touch-action:none;cursor:pointer}
+@media(max-width:700px){.hsrow{grid-template-columns:96px 30px 1fr}.hstrack{margin-left:136px}}
+.hstrack:before{content:"";position:absolute;left:0;right:0;top:21px;height:3px;border-radius:2px;background:var(--surface2)}
+.hsknob{position:absolute;top:8px;width:28px;height:28px;margin-left:-14px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 0 0 6px var(--bg),var(--shadow);cursor:grab;touch-action:none}
+.hsknob:after{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--accent)}
+.hsknob:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.hsticks{display:flex;justify-content:space-between;margin-left:172px;font-size:10.5px;color:var(--faint)}
+@media(max-width:700px){.hsticks{margin-left:136px}}
+.hsmet{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted);margin-top:6px}.hsmet b{color:var(--text);font-weight:600}
+</style></head>
+<body><div class="wrap">
+<header>
+ <div><h1><span class="logo">◆</span>GoProxy DNS</h1><div class="sub"><span class="dot" id="live"></span><span id="sub">connecting…</span></div></div>
+ <div class="ctl">
+  <div class="seg"><button id="tabD" class="on">Dashboard</button><button id="tabV">Version</button></div>
+  <span class="sw">Ad blocking <button class="q" data-h="blocking">?</button><button id="btog" class="tog" aria-label="Ad blocking"></button></span>
+  <span class="sw">Expert <button class="q" data-h="expert">?</button><button id="tog" class="tog" aria-label="Expert Mode"></button></span>
+  <button id="logout" class="btn" title="Sign out of the dashboard" style="padding:6px 12px;border-radius:9px;border:1px solid var(--edge);background:transparent;color:inherit;cursor:pointer">Log out</button>
+ </div>
+</header>
+<section id="vpane" class="hidden card" style="padding:28px"><div style="display:flex;align-items:baseline;gap:10px"><div class="big" id="ver" style="font-size:34px">–</div><span class="pill forwarded">current</span></div><div class="small" id="vmeta" style="margin-bottom:20px"></div><details id="acct" style="margin:0 0 22px;border:1px solid var(--edge);border-radius:12px;padding:12px 16px"><summary style="cursor:pointer;font-weight:600">Settings · Dashboard login <span class="small" id="acuser"></span></summary><form id="pwf" style="display:grid;gap:8px;max-width:340px;margin-top:12px"><input type="text" id="pwu" autocomplete="username" hidden><input type="password" id="pwc" placeholder="Current password" autocomplete="current-password" required style="padding:9px 11px;border-radius:9px;border:1px solid var(--edge);background:transparent;color:inherit"><input type="password" id="pwn" placeholder="New password (8+ characters)" minlength="8" maxlength="72" autocomplete="new-password" required style="padding:9px 11px;border-radius:9px;border:1px solid var(--edge);background:transparent;color:inherit"><input type="password" id="pwn2" placeholder="Repeat new password" autocomplete="new-password" required style="padding:9px 11px;border-radius:9px;border:1px solid var(--edge);background:transparent;color:inherit"><button type="submit" style="padding:9px;border-radius:9px;border:0;background:var(--accent,#4a9eff);color:#fff;font-weight:600;cursor:pointer">Change password</button><div class="small" id="pwmsg"></div><div class="small">Forgot it? On the GoProxy PC run <code>goproxy.exe -reset-password</code>, then open the dashboard there to create a new login. Changing the password signs out every other device.</div></form></details><div class="card" id="updcard" style="max-width:760px;margin:0 0 22px;background:var(--surface2)">
+ <div class="hd"><div class="lbl">Update <button class="q" data-h="update">?</button></div><span class="small" id="upst">–</span></div>
+ <div id="uprow" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 10px">
+  <label class="btn" style="display:inline-flex;align-items:center">Update from file…<input type="file" id="upf" accept=".exe,.zip" hidden></label>
+  <input id="upsha" placeholder="SHA-256 (optional)" spellcheck="false" style="flex:1;min-width:180px;font:12px ui-monospace,monospace;padding:6px 9px;border-radius:9px;border:1px solid var(--faint);background:var(--surface);color:var(--text)">
+  <button class="q" data-h="sha">?</button>
+ </div>
+ <div class="kv">
+  <div>Update folder <button class="q" data-h="updfolder">?</button></div><div id="updir" class="mono">–</div>
+  <div>Online updates <button class="q" data-h="updurl">?</button></div><div><span id="upurl">–</span> <button class="btn" id="upchk" style="display:none">Check now</button> <button class="btn" id="upinst" style="display:none"></button></div>
+  <div>Previous version <button class="q" data-h="rollback">?</button></div><div><span id="upprev">none saved</span> <button class="btn danger" id="uprb" style="display:none">Roll back</button></div>
+  <div>Last update <button class="q" data-h="handover">?</button></div><div id="uplast">–</div>
+ </div>
+ <div class="mono small" id="uplog" style="margin-top:10px;white-space:pre-wrap;max-height:160px;overflow:auto"></div>
+</div>
+<div id="cl" style="max-width:760px"></div></section>
+<div id="dpane">
+<section class="card" id="health" style="margin-bottom:16px">
+ <div class="hd"><div class="lbl">Health Score <button class="q" data-h="health">?</button></div><div style="display:flex;gap:8px;align-items:center"><span class="seg" id="hswin" role="group" aria-label="Time window" style="display:inline-flex;gap:2px"><button class="btn" data-w="live" aria-pressed="false" title="Real-time graph, updates every second"><span class="dot up" style="margin-right:4px"></span>Live</button><button class="btn" data-w="1m" aria-pressed="false">1 min</button><button class="btn" data-w="5m" aria-pressed="false">5 min</button><button class="btn" data-w="24h" aria-pressed="true" style="font-weight:650">24 h</button></span><span class="small" id="hsrange">–</span><button class="btn" id="hsnow" style="display:none">Now</button></div></div>
+ <div id="hslive" style="display:none"><div id="hlleg" style="display:flex;flex-wrap:wrap;gap:12px 24px;margin-bottom:10px"></div><canvas id="hlc" style="width:100%;height:430px;display:block" aria-label="Live traffic, last 2 minutes" role="img"></canvas><div class="small" id="hlnote" style="margin-top:4px">Last 2 minutes, one point per second. Response time is estimated from the latency histogram. CPU is the share of the whole machine; active clients counts distinct devices in the last 60 s (addresses shown only with Devices by volume on).</div></div>
+ <div class="hs" id="hsmain"><div><div class="hsring" id="hsring"><div><div><b id="hsv">–</b><span>of 100</span></div></div></div></div>
+ <div><div class="hsrows" id="hsrows"></div><div class="hstrack" id="hstrack"><div class="hsknob" id="hsknob" tabindex="0" role="slider" aria-label="Time" aria-valuemin="0" aria-valuemax="143"></div></div><div class="hsticks" id="hsticks"><span>24 h ago</span><span>18 h</span><span>12 h</span><span>6 h</span><span>now</span></div>
+ <div class="hsmet" id="hsmet"></div></div></div>
+</section>
+<section class="grid kpis">
+ <div class="card"><div class="lbl">Queries/sec <button class="q" data-h="qps">?</button></div><div class="big" id="qps">–</div><div class="small" id="qt"></div></div>
+ <div class="card"><div class="lbl">Cache hit <button class="q" data-h="hit">?</button></div><div class="big" id="hit">–</div><div class="small" id="hm"></div></div>
+ <div class="card"><div class="lbl">Blocked <button class="q" data-h="blocked">?</button></div><div class="big" id="blk" style="color:var(--red)">–</div><div class="small" id="bl"></div></div>
+ <div class="card"><div class="lbl">Latency p50 <button class="q" data-h="p50">?</button></div><div class="big" id="p50">–</div><div class="small" id="hp50"></div></div>
+ <div class="card"><div class="lbl">Latency p99 <button class="q" data-h="p99">?</button></div><div class="big" id="p99">–</div><div class="small" id="hp99"></div></div>
+ <div class="card"><div class="lbl">CPU <button class="q" data-h="cpu">?</button></div><div class="big" id="cpu">–</div><div class="small" id="thr"></div></div>
+ <div class="card"><div class="lbl">Memory <button class="q" data-h="ram">?</button></div><div class="big" id="ram">–</div><div class="bar" style="margin-top:8px"><div id="ramb" style="width:0"></div></div></div>
+</section>
+<section class="grid g2">
+ <div class="card"><div class="hd"><div class="lbl">CPU vs. lookups — live <button class="q" data-h="cpuchart">?</button></div><div class="legend"><span><i style="background:var(--accent)"></i>CPU %</span><span><i style="background:var(--amber)"></i>Queries/sec</span><span><i style="background:var(--red);height:8px;width:8px;border-radius:50%"></i>spike</span></div></div><canvas id="cpuc" style="height:220px"></canvas>
+  <div id="coresw" class="hidden" style="margin-top:14px"><div class="lbl" style="margin-bottom:8px">Per-core CPU <button class="q" data-h="cores">?</button></div><div class="cores" id="cores"></div></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Upstreams <button class="q" data-h="race">?</button></div><span class="small" id="par"></span></div><div id="ups"></div></div>
+</section>
+<section class="grid g3">
+ <div class="card"><div class="hd"><div class="lbl">Latency histogram <button class="q" data-h="hist">?</button></div></div><div class="hist" id="hist"></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Cache <button class="q" data-h="cache">?</button></div><button class="btn danger" id="flush">Flush cache</button></div>
+  <div style="display:flex;gap:16px;align-items:center"><div class="gauge"><svg width="120" height="120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface2)" stroke-width="11"/><circle id="garc" cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="0 999" style="transition:stroke-dasharray .5s"/></svg><div class="c"><div><div style="font-size:20px;font-weight:650" id="gpct">–</div><div class="small">of budget</div></div></div></div>
+  <div class="kv" style="flex:1"><div>Entries</div><div id="cent">–</div><div>Size</div><div id="csz">–</div><div>Evictions</div><div id="cev">–</div><div>Restored <button class="q" data-h="persist">?</button></div><div id="crs">–</div></div></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Query types <button class="q" data-h="qtypes">?</button></div></div><div id="qty"></div></div>
+</section>
+<section class="grid g3">
+ <div class="card"><div class="hd"><div class="lbl">Blocklist <button class="q" data-h="blocklist">?</button></div><button class="btn" id="blup">Update now</button></div><div class="kv"><div>Domains</div><div id="bls">–</div><div>Last updated</div><div id="blu">–</div><div>Blocked today</div><div id="blt">–</div></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Pinned domains <button class="q" data-h="pinned">?</button></div><span class="small" id="pinc"></span></div><div id="pins"></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Smart caching <button class="q" data-h="smart">?</button></div></div><div class="kv" id="smart"></div></div>
+</section>
+<section id="expert" class="hidden grid g3">
+ <div class="card"><div class="hd"><div class="lbl">Caching settings <button class="q" data-h="settings">?</button></div></div><div class="kv" id="cset"></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Runtime <button class="q" data-h="runtime">?</button></div></div><div class="kv" id="rt"></div></div>
+ <div class="card"><div class="hd"><div class="lbl">GC pauses (ms, newest first) <button class="q" data-h="gc">?</button></div></div><div class="mono" id="gc"></div></div>
+</section>
+<section class="grid g3">
+ <div class="card"><div class="hd"><div class="lbl">Top domains <button class="q" data-h="topd">?</button></div></div><div id="td"></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Top blocked <button class="q" data-h="topb">?</button></div></div><div id="tb"></div></div>
+ <div class="card"><div class="hd"><div class="lbl">Devices <button class="q" data-h="clients">?</button></div></div><div id="tc"></div></div>
+</section>
+<section class="card"><div class="hd"><div class="lbl">Live query log <button class="q" data-h="log">?</button></div><span class="small">newest first</span></div>
+ <div style="overflow-x:auto"><table><thead><tr><th>Time</th><th class="hide-sm">Client</th><th>Domain</th><th class="hide-sm">Type</th><th>Result</th><th class="hide-sm">Upstream</th><th style="text-align:right">Latency</th></tr></thead><tbody id="log"></tbody></table></div></section>
+</div></div>
+<div id="pop" role="tooltip"></div>
+<script>
+// v2.5.0 CSRF: every same-origin POST/PUT/PATCH/DELETE carries the per-session token from the goproxy_csrf cookie.
+(()=>{const of=window.fetch.bind(window);const tok=()=>{const m=document.cookie.match(/(?:^|;\s*)goproxy_csrf=([^;]+)/);return m?decodeURIComponent(m[1]):""};
+window.fetch=(input,init)=>{init=init||{};const meth=String(init.method||(input instanceof Request?input.method:"GET")).toUpperCase();
+const url=new URL(input instanceof Request?input.url:String(input),location.href);
+if(meth!=="GET"&&meth!=="HEAD"&&url.origin===location.origin){const h=new Headers(init.headers||(input instanceof Request?input.headers:undefined));h.set("X-GoProxy-CSRF",tok());init={...init,headers:h}}
+return of(input,init)}})();
+
+{const of=window.fetch.bind(window);window.fetch=async(...a)=>{const r=await of(...a);if(r.status===401&&!String(a[0]).startsWith("/api/auth/")){location.replace("/login")}return r}}
+document.addEventListener("DOMContentLoaded",()=>{const g=id=>document.getElementById(id);
+fetch("/api/auth/status",{cache:"no-store"}).then(r=>r.json()).then(s=>{if(!s.user){location.replace("/login");return}g("acuser").textContent="· signed in as "+s.user;g("pwu").value=s.user});
+g("logout").onclick=async()=>{await fetch("/api/auth/logout",{method:"POST"});location.replace("/login")};
+g("pwf").onsubmit=async e=>{e.preventDefault();const m=g("pwmsg");if(g("pwn").value!==g("pwn2").value){m.textContent="New passwords don’t match.";return}
+const r=await fetch("/api/auth/password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({current:g("pwc").value,password:g("pwn").value})});const j=await r.json().catch(()=>({}));
+m.textContent=r.ok&&j.ok?"Password changed.":(j.error||"Error "+r.status);if(r.ok)g("pwf").reset()}});
+
+(()=>{
+const HELP=window.HELP={ // v2.5.1: shared with v24.js (its "?" help texts were not found before)
+health:["Health Score","One number for how well GoProxy served your home in the selected window: the average of the four scores below, but never more than 15 points above the weakest one, so one real problem always shows. Drag the round handle (or use the arrow keys) to look back. Pick the range at the top: Live (a real-time graph of queries/sec, response time, cache hit % and failures over the last 2 minutes, updated every second; switch back to see the score), 24 h (each bar segment is 10 minutes), 5 min (15-second segments) or 1 min (5-second segments, updates every 5 s). The short views are kept in memory only and start empty after a restart. Green is 80 or more, yellow 50 to 79, red under 50, grey means no traffic.","80 or more, green most of the day."],
+hs_up:["Upstream score","How reliably Cloudflare and Quad9 answered. Each failed upstream lookup (timeout, connection drop, SERVFAIL or REFUSED) costs twice its share. A red stretch usually means the PC's Wi-Fi or internet dropped then.","90 or more."],
+hs_cache:["Cache score","How many questions were answered from GoProxy's memory instead of the internet, including stale answers. An 80% hit rate or better scores 100. It dips right after a restart or a cache flush.","80 or more after the first hour."],
+hs_lat:["Latency score","Share of answers sent in under 50 ms, minus a penalty for any slower than 250 ms. Cache hits take well under 1 ms, so this drops only when many lookups have to wait for the internet.","90 or more."],
+hs_err:["Errors score","How often a device got a failure (SERVFAIL) instead of an answer. Every 1% of failed queries costs 10 points. Serve-stale keeps this high during short internet blips.","95 or more."],
+
+blocking:["Ad blocking","Answers requests for known ad and tracker domains with “nothing here” (0.0.0.0), so ads never load on any device that uses this DNS.","Off by default since v2.2.0. Start GoProxy with -blocking=true to download the blocklist and turn it on. Pausing is remembered across restarts."],
+expert:["Expert Mode","Shows the technical details: every caching setting, per-core CPU, Go runtime numbers and garbage-collection pauses.","Off for everyday use."],
+qps:["Queries per second","How many name lookups your devices send right now. Opening a web page usually causes 10–50 lookups in a burst.","Anything is fine. A home network idles at 1–20/s."],
+hit:["Cache hit rate","The share of lookups answered instantly from memory instead of asking the internet. Higher means faster browsing.","Above 80% after the server has run for a while."],
+blocked:["Blocked","The share of all lookups that were ads or trackers and got blocked.","Typically 5–30%, depending on the sites you visit."],
+p50:["Latency p50 (median)","Half of all lookups were answered faster than this. It mostly reflects cache hits.","Under 1 ms."],
+p99:["Latency p99","99 out of 100 lookups were faster than this. It shows the slow ones, usually first-time lookups that had to go to the internet.","Under 50 ms. Over 200 ms means the internet or an upstream is slow."],
+cpu:["CPU usage","How busy the PC’s processor is overall, across all threads. Lookups use a little CPU, so you can see bursts here.","Under 20% at home. Short spikes during lookup bursts are normal."],
+ram:["Memory","How much RAM this program uses. The bar shows how full the DNS cache is compared with its budget.","Well below the PC’s total memory."],
+cpuchart:["CPU vs. lookups","The blue line is CPU %, the amber line is queries per second over the last 2 minutes. Red dots mark CPU spikes that happened during a lookup burst, so you can see how much work lookups cause.","CPU rising a little with each burst, then falling back quickly."],
+cores:["Per-core CPU","Load on each processor thread. GoProxy spreads lookups across all threads of your CPU.","Fairly even bars. One bar stuck at 100% means a single thread is the bottleneck."],
+race:["Upstream race","When a name isn’t cached, GoProxy asks the top 2 enabled servers of the DNS Servers list (Advanced tab; the number shown before each name is its priority) at the same time, and brings in the other encrypted ones only if those haven’t answered after a short delay (about their p95, 20–200 ms) or have failed. Unencrypted (UDP) servers lower in the list are fallbacks, asked only when all of those failed. An upstream that fails 3 times in a row is skipped for 2 s, then 4 s, 8 s… up to 60 s. Error types: timeout, http (e.g. 429 rate limited), conn (reset/GOAWAY), servfail (often a DNSSEC or dead-server problem with that one name), refused. “Cancelled” are race losers stopped because another upstream already answered: not errors. SERVFAIL/REFUSED never win. The dot shows health: green up, amber slow, red down.","Green dots, with average latency under 30 ms."],
+hist:["Latency histogram","How many lookups finished in each time range. The tall bars on the left are cache hits, the ones on the right went to the internet.","Most of the height in the < 0.1 ms and < 0.5 ms bars."],
+cache:["Cache","Answers kept in memory so repeat lookups are instant. Flush empties it. Everything is then fetched fresh, which is useful after changing network settings.","Usually you never need to flush."],
+update:["Update","Installs a new GoProxy without dropping DNS. The new version loads a fresh copy of the cache first, then takes over port 53 in a few milliseconds. If it cannot answer a test lookup, it is stopped and this version keeps running.","Pick the new goproxy.exe or the release .zip. The page reloads by itself when the new version is in charge."],
+sha:["SHA-256 check","An optional fingerprint of the file. If you paste one, the file is only installed when it matches exactly, which proves it was not damaged or swapped. For a .zip, use the fingerprint of the .zip itself.","Leave empty to skip the check."],
+updfolder:["Update folder","Copy a new goproxy.exe or release .zip into this folder and GoProxy installs it within a few seconds. A file next to it named the same plus .sha256 is checked first. Handled files move to the processed subfolder.","Handy over a network share or Remote Desktop."],
+updurl:["Online updates","If GoProxy was started with -update-url, it checks that address every 6 hours for a small JSON file with version, url and sha256. A newer version is offered here with an Install button and is never installed on its own.","Shows off when no address is set."],
+rollback:["Roll back","Every update keeps the version it replaced as goproxy.prev.exe. Roll back puts that version back with the same no-downtime handover.","Versions before v2.3.0 cannot do the seamless handover, so going back to one of them stops DNS for about a second while it starts. If it does not start answering within 10 seconds, this version comes back on its own."],
+handover:["Last update","When the last update happened and how long port 53 was closed while the old and new versions swapped. Devices retry within a second, so anything under that goes unnoticed.","A few milliseconds."],
+persist:["Warm start","When you quit, the cache and your lookup history are saved to disk and loaded again at the next start, so it is fast right away.","A number above 0 after a restart."],
+qtypes:["Query types","The kind of record devices ask for. A = IPv4 address, AAAA = IPv6 address, HTTPS = connection hints for faster secure connections, PTR = reverse (IP → name).","Mostly A, AAAA and HTTPS."],
+blocklist:["Blocklist","The list of known ad and tracker domains. It updates automatically every day. Update now downloads it again right away.","Updated within the last 24 hours."],
+pinned:["Pinned domains","Names that are always kept cached and refreshed, so YouTube and Netflix start instantly. Video servers (googlevideo.com, nflxvideo.net, nflxso.net) are pinned automatically when seen, and they are never blocked.","The YouTube and Netflix groups filled in."],
+smart:["Smart caching","Background work that keeps answers ready before you need them: prefetch, the AAAA/HTTPS companions of each A lookup, popular names that never expire, and the warm-up at start.","Counts rising over time, while the CPU stays low."],
+settings:["Caching settings","Values set by command-line flags when the program starts. Hover the ? beside each one for what it does.",""],
+stale_timeout:["Stale answer timeout","When an answer has expired, GoProxy first tries for a fresh one. If the internet hasn’t answered within this time, it serves the old answer so the site still loads (RFC 8767). Flag: -stale-timeout.","3 s. Shorter is snappier when the internet is bad. Longer is stricter."],
+stale_max:["Max stale age","How long after expiring an old answer may still be used as a fallback. After that it is dropped. Flag: -stale.","1 hour."],
+min_ttl:["Minimum TTL","Every answer is kept at least this long, even if the site asks for less. Since v2.5.0 the default is 0: answers keep the TTL the site asked for (a 5 s floor stops TTL-0 storms), so failover and dynamic DNS work. Pinned names (YouTube, Netflix, connectivity checks) still keep at least 300 s (flag -pinned-min-ttl). Not-found answers are cached per RFC 2308 for 5–300 s. Flag: -min-ttl.","0 (honour the site). Raise it only for more cache hits at the cost of slower failover."],
+max_ttl:["Maximum TTL","No answer is kept longer than this, even if the site allows it. Flag: -max-ttl.","24 h."],
+prefetch:["Prefetch","A name you have looked up at least this many times is refreshed in the background once only this fraction of its lifetime is left, so it never runs out. Flags: -prefetch-hits, -prefetch-at.","1 hit, 20%."],
+siblings:["A → AAAA/HTTPS","When a device asks for a site’s IPv4 address (A), GoProxy fetches the IPv6 (AAAA) and HTTPS records in the background too, because the next question is almost always for those. Flag: -prefetch-siblings.","On."],
+keephot:["Popular never expire","The N most-visited names are refreshed continuously, so they are always cached. Flags: -keep-hot, -keep-hot-every.","200 names every 30 s. Uses very little bandwidth."],
+warmup:["Warm-up at start","Right after launch, the top names from your saved history are looked up quietly in the background, a few at a time. Flags: -warmup, -warmup-workers.","500 names, 4 at a time."],
+ptr:["Device names","Client IPs are turned into device names by asking your router (reverse lookup). Flag: -ptr-server.","Your router, 192.168.1.1."],
+runtime:["Runtime","Go runtime internals: threads, goroutines (lightweight tasks) and memory.","Goroutines stable over time (not growing forever)."],
+gc:["GC pauses","How long Go paused briefly to clean up memory. These pauses add directly to lookup latency.","Under 1 ms."],
+topd:["Top domains","The names your devices look up most since start (including saved history).",""],
+topb:["Top blocked","The ad and tracker domains blocked most often.",""],
+clients:["Devices","Which devices use this DNS, with names from your router when it knows them. The red number is how many of their lookups were blocked.",""],
+log:["Live query log","Every lookup as it happens. cached = from memory, refreshed = expired but fetched fresh in time, stale = old answer served because the internet was slow, forwarded = asked the internet, blocked = ad blocked.",""]};
+const $=id=>document.getElementById(id),pop=$("pop");let openQ=null;
+let openIdx=0;
+function showHelp(b){openIdx=[...document.querySelectorAll(`.q[data-h="${b.dataset.h}"]`)].indexOf(b);const h=HELP[b.dataset.h];if(!h)return;pop.innerHTML=`<b>${h[0]}</b>${h[1]}${h[2]?`<div class="good">${h[2]}</div>`:""}`;pop.style.display="block";
+const r=b.getBoundingClientRect(),pw=Math.min(300,innerWidth-24);pop.style.maxWidth=pw+"px";const ph=pop.offsetHeight;let x=Math.min(Math.max(12,r.left+r.width/2-pw/2),innerWidth-pw-12),y=r.bottom+8;if(y+ph>innerHeight-8)y=r.top-ph-8;
+pop.style.left=x+"px";pop.style.top=Math.max(8,y)+"px";if(openQ)openQ.classList.remove("open");openQ=b;b.classList.add("open")}
+function hide(){pop.style.display="none";if(openQ)openQ.classList.remove("open");openQ=null}
+document.addEventListener("click",e=>{const b=e.target.closest(".q");if(b){e.preventDefault();e.stopPropagation();openQ===b?hide():showHelp(b);return}if(!e.target.closest("#pop"))hide()});
+const fine=matchMedia("(hover:hover)").matches;if(fine){document.addEventListener("mouseover",e=>{const b=e.target.closest(".q");if(b&&openQ!==b)showHelp(b)});document.addEventListener("mouseout",e=>{const b=e.target.closest(".q");if(b&&!pop.matches(":hover"))setTimeout(()=>{if(!pop.matches(":hover")&&openQ===b)hide()},120)})}
+addEventListener("scroll",hide,{passive:true});addEventListener("keydown",e=>{if(e.key==="Escape")hide()});
+const qb=k=>`<button class="q" data-h="${k}">?</button>`;
+let expert=localStorage.expert==="1"||location.search.includes("expert=1");
+const setE=()=>{$("tog").classList.toggle("on",expert);$("expert").classList.toggle("hidden",!expert);$("coresw").classList.toggle("hidden",!expert)};setE();
+$("tog").onclick=e=>{e.preventDefault();expert=!expert;localStorage.expert=expert?"1":"0";setE()};
+$("btog").onclick=e=>{e.preventDefault();const on=!$("btog").classList.contains("on");fetch("/api/blocking?enabled="+on,{method:"POST"});$("btog").classList.toggle("on",on)};
+$("flush").onclick=async()=>{if(!confirm("Flush the DNS cache?\n\nEvery cached answer is removed and fetched fresh from the internet. Browsing may be a little slower for a minute."))return;const r=await fetch("/api/flush",{method:"POST"}).then(r=>r.json());$("flush").textContent=`Flushed ${r.flushed.toLocaleString()}`;setTimeout(()=>$("flush").textContent="Flush cache",2500)};
+$("blup").onclick=()=>{$("blup").disabled=true;$("blup").textContent="Updating…";fetch("/api/blocklist/update",{method:"POST"})};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fav=h=>`<img class="fav" loading="lazy" alt="" src="/favicon?host=${encodeURIComponent(h)}">`;
+const ms=v=>v<1?(v*1000).toFixed(0)+" µs":v.toFixed(v<10?1:0)+" ms";
+const n=v=>v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(1)+"k":String(v);
+const ago=t=>{if(!t)return"never";const s=Date.now()/1e3-t;return s<60?"just now":s<3600?Math.floor(s/60)+" min ago":s<86400?Math.floor(s/3600)+" h ago":Math.floor(s/86400)+" d ago"};
+const dur=s=>s>=3600&&s%3600==0?s/3600+" h":s>=60&&s%60==0?s/60+" min":s+" s";
+function top(el,list,icon){const max=list.length?list[0].requests:1;$(el).innerHTML=list.length?list.map(x=>`<div style="padding:4px 0"><div class="row" style="padding:0"><span class="trunc">${icon?fav(x.host):""}${esc(x.host)}</span><span class="small">${n(x.requests)}</span></div><div class="bar" style="height:4px;margin-top:3px"><div style="width:${100*x.requests/max}%;opacity:.55"></div></div></div>`).join(""):'<div class="small">no data yet</div>'}
+// ---- live CPU / QPS chart (2 min @ 4 Hz) ----
+const N=480,cpuH=[],qpsH=[],cv=$("cpuc"),cx=cv.getContext("2d");
+const probe=document.createElement("i");probe.style.display="none";document.body.appendChild(probe);
+function css(v,a=1){probe.style.color=`var(${v})`;const m=getComputedStyle(probe).color.match(/[\d.]+/g)||[0,0,0];return `rgba(${m[0]},${m[1]},${m[2]},${a})`}
+function draw(){const dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight||220;if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr}cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,w,h);
+const pl=30,pr=34,pt=8,pb=18,W=w-pl-pr,H=h-pt-pb,qmax=Math.max(5,...qpsH)*1.15;cx.font="10px system-ui";cx.fillStyle=css("--muted");cx.strokeStyle=css("--muted",.14);cx.lineWidth=1;
+for(let i=0;i<=4;i++){const y=pt+H*i/4;cx.beginPath();cx.moveTo(pl,y);cx.lineTo(pl+W,y);cx.stroke();cx.textAlign="right";cx.fillText(100-25*i+"%",pl-5,y+3);cx.textAlign="left";cx.fillText(n(Math.round(qmax*(4-i)/4)),pl+W+5,y+3)}
+cx.textAlign="center";cx.fillText("2 min ago",pl+30,h-4);cx.fillText("now",pl+W-12,h-4);
+const X=i=>pl+W*(i+N-cpuH.length)/(N-1);
+function line(arr,scale,col,fill){if(arr.length<2)return;cx.beginPath();arr.forEach((v,i)=>{const x=X(i),y=pt+H-H*Math.min(v/scale,1);i?cx.lineTo(x,y):cx.moveTo(x,y)});cx.strokeStyle=col;cx.lineWidth=2;cx.lineJoin="round";cx.stroke();
+if(fill){cx.lineTo(X(arr.length-1),pt+H);cx.lineTo(X(0),pt+H);cx.closePath();const g=cx.createLinearGradient(0,pt,0,pt+H);g.addColorStop(0,fill[0]);g.addColorStop(1,fill[1]);cx.fillStyle=g;cx.fill()}}
+const acc=css("--accent"),amb=css("--amber");line(qpsH,qmax,amb,false);line(cpuH,100,acc,[css("--accent",.3),css("--accent",0)]);
+// spikes: CPU well above its moving average while QPS is bursting
+const avg=a=>a.reduce((x,y)=>x+y,0)/Math.max(a.length,1);cx.fillStyle=css("--red");
+for(let i=8;i<cpuH.length;i++){const c=cpuH[i],ca=avg(cpuH.slice(Math.max(0,i-40),i)),qa=avg(qpsH.slice(Math.max(0,i-40),i));if(c>ca+8&&c>=cpuH[i-1]&&c>=(cpuH[i+1]??0)&&qpsH[i]>Math.max(2,qa*1.8)){cx.beginPath();cx.arc(X(i),pt+H-H*Math.min(c/100,1),3.5,0,7);cx.fill()}}}
+addEventListener("resize",draw);matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+const rows=[];let lastBlUp=0;
+function render(s){render2(s);if(openQ&&!openQ.isConnected){const l=document.querySelectorAll(`.q[data-h="${openQ.dataset.h}"]`);openQ=l[openIdx]||null;if(openQ)openQ.classList.add("open");else pop.style.display="none"}}
+function render2(s){
+$("sub").textContent=`${s.blocklist_size.toLocaleString()} blocked domains · ${s.num_cpu} threads · up ${s.uptime_sec<3600?Math.floor(s.uptime_sec/60)+"m":Math.floor(s.uptime_sec/3600)+"h"}${s.warming?" · warming up…":""}`;
+const ups=s.upstreams.filter(u=>u.kind!=="UDP fallback"&&u.encrypted!==false||u.kind==="DoH"),hh=ups.some(u=>u.health==="up")?"up":ups.some(u=>u.health==="slow"||u.health==="idle")?"slow":"down";$("live").className="dot "+hh;
+$("qps").textContent=s.qps.toFixed(s.qps<10?1:0);$("qt").textContent=n(s.queries)+" total";
+$("hit").textContent=(s.hit_ratio*100).toFixed(1)+"%";$("hm").textContent=`${n(s.hits+s.stale_hits)} hit · ${n(s.misses)} miss`;
+$("blk").textContent=(s.blocked_ratio*100).toFixed(1)+"%";$("bl").textContent=!s.blocking_available?"blocking OFF":s.blocking_paused?"blocking PAUSED":n(s.blocked)+" blocked";$("btog").classList.toggle("on",s.blocking_available&&!s.blocking_paused);$("btog").disabled=!s.blocking_available;$("btog").title=s.blocking_available?"":"Ad blocking is off. Start GoProxy with -blocking=true to use it.";
+$("p50").textContent=ms(s.p50_ms);$("p99").textContent=ms(s.p99_ms);$("hp50").textContent="cache hit "+ms(s.hit_p50_ms);$("hp99").textContent="cache hit "+ms(s.hit_p99_ms);
+$("cpu").textContent=s.cpu_percent.toFixed(0)+"%";$("thr").textContent=`${s.num_cpu} threads · ${s.goroutines} tasks`;
+$("ram").textContent=(s.sys_gb*1024).toFixed(0)+" MB";$("ramb").style.width=Math.min(100,100*s.cache_bytes/s.cache_limit)+"%";
+const lq=qpsH.length?qpsH[qpsH.length-1]:s.qps,lc=cpuH.length?cpuH[cpuH.length-1]:s.cpu_percent;cpuH.push(lc+(s.cpu_percent-lc)*.6);qpsH.push(lq+(s.qps-lq)*.45);if(cpuH.length>N){cpuH.shift();qpsH.shift()}draw();
+if(expert)$("cores").innerHTML=(s.cpu_per_core||[]).map((c,i)=>`<div title="thread ${i}: ${c.toFixed(0)}%"><span style="height:${c}%"></span><em>${c.toFixed(0)}</em></div>`).join("");
+$("par").textContent=s.parallel_all?`parallel: all ${s.upstreams.length} at once${s.last_winner?" · last win "+s.last_winner:""}`:`top ${s.race_first} first, hedge to ${Math.min(s.parallel,s.upstreams.filter((u,i)=>u.priority&&(u.encrypted||u.priority<=s.race_first)).length||s.parallel)} · ${n(s.hedged)} hedged`;
+$("ups").innerHTML=s.upstreams.map(u=>`<div class="row" style="${u.kind==="UDP fallback"?"opacity:.6":""}"><div class="trunc"><span class="dot ${u.health}" title="${u.health}"></span> <b style="font-weight:550">${u.priority?u.priority+". ":""}${esc(u.label||u.name)}</b>${u.label?` <span class="small">${esc(u.name)}</span>`:""}<div class="small">${u.kind} · ${u.health==="idle"?"standby":u.health}${u.errors?` · <span style="color:var(--red)">${u.errors} err</span>`:""}${u.breaker_sec>0?` · <span style="color:var(--red)">backing off ${Math.ceil(u.breaker_sec)}s</span>`:""}</div><div class="small" title="timeouts / HTTP errors / connection errors / SERVFAIL / REFUSED / cancelled race losers (not errors)">${u.p95_ms?`p95 ${ms(u.p95_ms)} · `:""}timeout ${n(u.timeouts||0)} · http ${n(u.http_errors||0)}${u.last_http_status?` (${u.last_http_status})`:""} · conn ${n(u.conn_errors||0)} · servfail ${n(u.servfail||0)} · refused ${n(u.refused||0)} · <span style="opacity:.7">cancelled ${n(u.cancelled||0)}</span></div></div><div style="text-align:right"><div style="font-weight:650">${(u.win_rate*100).toFixed(0)}% <span class="small">wins</span></div><div class="small">${u.avg_ms?ms(u.avg_ms):"–"} avg</div></div></div>`).join("");
+const hs=s.latency_hist||[],hm=Math.max(1,...hs),lab=["<0.1","<0.5","<1","<5","<10","<25","<50","<100","<250","<1s","≥1s"];
+$("hist").innerHTML=hs.map((v,i)=>`<div title="${lab[i]} ms: ${v.toLocaleString()}"><span style="height:${Math.max(2,100*v/hm)}%;${i>=7?"background:var(--amber)":i>=3?"opacity:.75":""}"></span><em>${lab[i]}</em></div>`).join("");
+const p=Math.min(1,s.cache_bytes/s.cache_limit),C=2*Math.PI*50;$("garc").setAttribute("stroke-dasharray",`${Math.max(.5,p*C)} ${C}`);$("gpct").textContent=(p*100).toFixed(p<.1?2:1)+"%";
+$("cent").textContent=s.cache_entries.toLocaleString();$("csz").textContent=`${(s.cache_bytes/2**20).toFixed(1)} MB / ${s.cache_limit/2**30} GB`;$("cev").textContent=n(s.evictions);$("crs").textContent=n(s.cache_restored);
+const qt=Object.entries(s.qtypes||{}).sort((a,b)=>b[1]-a[1]).slice(0,7),qs=qt.reduce((a,b)=>a+b[1],0)||1,cols=["--accent","--green","--purple","--amber","--red","--muted","--faint"];
+$("qty").innerHTML=qt.length?`<div class="bar" style="height:10px;display:flex;margin-bottom:10px">${qt.map((x,i)=>`<div style="width:${100*x[1]/qs}%;border-radius:0;background:var(${cols[i]})"></div>`).join("")}</div>`+qt.map((x,i)=>`<div class="row"><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(${cols[i]});margin-right:7px"></i>${x[0]}</span><span class="small">${(100*x[1]/qs).toFixed(1)}% · ${n(x[1])}</span></div>`).join(""):'<div class="small">no data yet</div>';
+$("bls").textContent=s.blocklist_size.toLocaleString();$("blu").textContent=s.blocklist_updating?"updating…":ago(s.blocklist_updated);$("blt").textContent=n(s.blocked);
+if(!s.blocklist_updating&&$("blup").disabled&&s.blocklist_updated!==lastBlUp){$("blup").disabled=false;$("blup").textContent="Update now"}if(!$("blup").disabled)lastBlUp=s.blocklist_updated;
+const pins=s.pinned||[],g={};pins.forEach(x=>(g[x.service]=g[x.service]||[]).push(x));$("pinc").textContent=`${pins.length} names · ${n(s.pinned_refreshes)} refreshes`;
+$("pins").innerHTML=Object.entries(g).map(([k,v])=>`<div class="grp">${k} <span class="small">· ${v.length}${v.some(x=>x.auto)?` (${v.filter(x=>x.auto).length} auto)`:""}</span></div><div class="chips">${v.slice(0,12).map(x=>`<span class="chip ${x.auto?"auto":""}" title="${x.auto?"auto-pinned":"pinned"}">${esc(x.name)}</span>`).join("")}${v.length>12?`<span class="chip">+${v.length-12} more</span>`:""}</div>`).join("")||'<div class="small">none</div>';
+const st=s.settings||{};
+$("smart").innerHTML=`<div>Prefetches ${qb("prefetch")}</div><div>${n(s.prefetches)}</div><div>AAAA/HTTPS companions ${qb("siblings")}</div><div>${n(s.sibling_prefetches)}</div><div>Kept hot ${qb("keephot")}</div><div>${n(s.keephot_refreshes)}</div><div>Warm-up ${qb("warmup")}</div><div>${s.warming?"running · ":""}${n(s.warmed)}</div><div>Fresh instead of stale ${qb("stale_timeout")}</div><div>${n(s.stale_rescued)}</div><div>Stale served ${qb("stale_max")}</div><div>${n(s.stale_hits)}</div>`;
+top("td",s.top_domains,true);top("tb",s.top_blocked,true);
+const cl=s.clients||[],cm=cl.length?cl[0].queries:1;$("tc").innerHTML=cl.length?cl.slice(0,10).map(c=>`<div style="padding:4px 0"><div class="row" style="padding:0"><span class="trunc"><b style="font-weight:550">${esc(c.name||c.ip)}</b>${c.name?` <span class="small mono">${esc(c.ip)}</span>`:""}</span><span class="small">${n(c.queries)}${c.blocked?` · <span style="color:var(--red)">${n(c.blocked)}</span>`:""}</span></div><div class="bar" style="height:4px;margin-top:3px"><div style="width:${100*c.queries/cm}%;opacity:.55"></div></div></div>`).join(""):'<div class="small">no data yet</div>';
+if(expert){$("cset").innerHTML=`<div>Stale answer timeout ${qb("stale_timeout")}</div><div>${st.stale_timeout_ms?st.stale_timeout_ms/1000+" s":"off"}</div><div>Max stale age ${qb("stale_max")}</div><div>${dur(st.stale_max_age_sec)}</div><div>Minimum TTL ${qb("min_ttl")}</div><div>${dur(st.min_ttl_sec)}</div><div>Maximum TTL ${qb("max_ttl")}</div><div>${dur(st.max_ttl_sec)}</div><div>Prefetch ${qb("prefetch")}</div><div>≥${st.prefetch_hits} hit · at ${Math.round(st.prefetch_at*100)}% left</div><div>A → AAAA/HTTPS ${qb("siblings")}</div><div>${st.siblings?"on":"off"}</div><div>Popular never expire ${qb("keephot")}</div><div>${st.keep_hot?`top ${st.keep_hot} · every ${dur(st.keep_hot_every_sec)}`:"off"}</div><div>Warm-up at start ${qb("warmup")}</div><div>${st.warmup?`${st.warmup} names · ${st.warmup_workers} at a time`:"off"}</div><div>Auto-pin / never block ${qb("pinned")}</div><div class="trunc" style="max-width:150px" title="${esc((st.never_block||[]).join(", "))}">${(st.auto_pin||[]).length} / ${(st.never_block||[]).length} domains</div><div>Device names ${qb("ptr")}</div><div>${esc(st.ptr_server||"off")}</div>`;
+$("rt").innerHTML=`<div>GOMAXPROCS / CPUs</div><div>${s.gomaxprocs} / ${s.num_cpu}</div><div>Goroutines</div><div>${s.goroutines}</div><div>UDP listeners</div><div>${s.udp_listeners}</div><div>Heap / Sys</div><div>${(s.heap_gb*1024).toFixed(0)} / ${(s.sys_gb*1024).toFixed(0)} MB</div><div>Host RAM</div><div>${s.host_mem_used_gb.toFixed(1)} / ${s.host_mem_total_gb.toFixed(1)} GB</div><div>GC cycles</div><div>${s.num_gc}</div><div>Failures</div><div>${s.failures}</div><div>Snapshot file</div><div class="trunc" style="max-width:150px" title="${esc(st.cache_file||"")}">${esc((st.cache_file||"off").split(/[\\/]/).pop())}</div>`;
+$("gc").textContent=(s.gc_pauses_ms||[]).map(x=>x.toFixed(3)).join("  ")||"–"}
+for(const l of (s.logs||[]))rows.unshift(l);rows.length=Math.min(rows.length,25);
+$("log").innerHTML=rows.map(l=>`<tr><td class="mono" style="color:var(--muted)">${l.time.slice(0,8)}</td><td class="mono hide-sm">${esc(l.client)}</td><td class="trunc" style="max-width:280px">${fav(l.domain)}${esc(l.domain)}</td><td class="hide-sm small">${l.type}</td><td><span class="pill ${l.result}">${l.result}</span></td><td class="hide-sm small">${esc(l.upstream||"")}</td><td class="mono" style="text-align:right">${ms(l.latency_ms)}</td></tr>`).join("")}
+function connect(){const ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/stats");
+ws.onclose=()=>{$("sub").textContent="reconnecting…";$("live").className="dot down";setTimeout(connect,1000)};ws.onmessage=ev=>render(JSON.parse(ev.data))}
+connect();
+const hp=new URLSearchParams(location.search).get("help");if(hp)setTimeout(()=>{const b=document.querySelector(`.q[data-h="${CSS.escape(hp)}"]`);if(b){b.scrollIntoView({block:"center"});setTimeout(()=>showHelp(b),50)}},2500);
+function md(t){const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`(.+?)`/g,"<code>$1</code>");let h="",ul=false;
+for(const l of t.split("\n")){const c=()=>{if(ul){h+="</ul>";ul=false}};
+if(l.startsWith("## ")){c();h+=`<h2>${inl(l.slice(3))}</h2>`}else if(l.startsWith("### ")){c();h+=`<h3>${inl(l.slice(4))}</h3>`}
+else if(l.startsWith("- ")){if(!ul){h+='<ul style="padding-left:20px;margin:4px 0">';ul=true}h+=`<li>${inl(l.slice(2))}</li>`}else c()}if(ul)h+="</ul>";return h}
+fetch("/api/version").then(r=>r.json()).then(v=>{$("ver").textContent="v"+v.version;$("vmeta").textContent=`GoProxy DNS · ${v.os} · ${v.go}`;$("cl").innerHTML=md(v.changelog);document.title="GoProxy DNS v"+v.version});
+function tab(v){$("vpane").classList.toggle("hidden",!v);$("dpane").classList.toggle("hidden",v);$("tabD").classList.toggle("on",!v);$("tabV").classList.toggle("on",v);history.replaceState(null,"",v?"#version":location.pathname+location.search)}
+
+let upVer=null;
+function upRender(u){$("upst").textContent={idle:"Ready",working:"Updating…",failed:"Last attempt failed",done:"Done"}[u.state]||u.state;
+$("updir").textContent=u.watch_dir||"off";$("updir").classList.toggle("mono",!!u.watch_dir);$("uprow").style.display=u.container?"none":"flex";$("upurl").textContent=u.manifest_url?(u.available?`v${u.available.version} available`:(u.checked?"up to date":"not checked yet")):"off";
+$("upchk").style.display=u.manifest_url?"":"none";const a=$("upinst");a.style.display=u.available?"":"none";if(u.available)a.textContent="Install v"+u.available.version;
+$("upprev").textContent=u.previous_version?"v"+u.previous_version:"none saved";$("uprb").style.display=u.previous_version?"":"none";if(u.previous_version==="unknown")$("upprev").textContent="older than v2.3.0";
+const l=u.last_update;$("uplast").textContent=l?`v${l.from} → v${l.to}, ${new Date(l.at).toLocaleString()}, DNS handover ${l.gap_ms.toFixed(1)} ms`:"–";
+$("uplog").textContent=(u.log||[]).slice(-12).join("\n");
+if(u.container){$("upst").textContent="Running in a container: update by pulling/building a new image";$("uprb").style.display="none";$("upinst").style.display="none";$("upchk").style.display="none"}}
+async function errText(r){const t=await r.text();try{return JSON.parse(t).error||t}catch(e){return t}}
+let upFail=0;async function upPoll(){try{const r=await fetch("/api/update/status",{cache:"no-store"});if(!r.ok)throw new Error(r.status);const u=await r.json();upFail=0;upRender(u);if(u.state==="working")setTimeout(upPoll,700)}catch(e){upFail++;if(upFail<20)setTimeout(upPoll,Math.min(700*2**upFail,30000))}}
+async function upWaitNew(){$("upst").textContent="Handing over…";for(let i=0;i<120;i++){await new Promise(r=>setTimeout(r,500));try{const v=await (await fetch("/api/version",{cache:"no-store"})).json();if(v.version!==upVer){location.hash="#version";location.reload();return}
+const u=await (await fetch("/api/update/status")).json();upRender(u);if(u.state==="failed")return}catch(e){}}}
+async function upPost(url,body){const r=await fetch(url,{method:"POST",body});if(!r.ok){alert(await errText(r));upPoll();return}upWaitNew()}
+$("upf").onchange=e=>{const f=e.target.files[0];if(!f)return;if(!confirm(`Install ${f.name}? DNS keeps running during the switch.`)){e.target.value="";return}
+const fd=new FormData();fd.append("file",f);fd.append("sha256",$("upsha").value.trim());e.target.value="";$("upst").textContent="Uploading…";upPost("/api/update/upload",fd)};
+$("uprb").onclick=()=>{if(confirm("Roll back to "+$("upprev").textContent+"?"))upPost("/api/update/rollback")};
+$("upinst").onclick=()=>upPost("/api/update/install");
+$("upchk").onclick=async()=>{const r=await fetch("/api/update/check",{method:"POST"});if(!r.ok)alert(await errText(r));else upRender(await r.json())};
+fetch("/api/version").then(r=>r.json()).then(v=>{upVer=v.version});upPoll();
+$("tabD").onclick=()=>tab(false);$("tabV").onclick=()=>tab(true);if(location.hash==="#version")tab(true);
+// ---- Health Score with time scrubber ----
+const HS=[["upstream","Upstream","hs_up"],["cache","Cache","hs_cache"],["latency","Latency","hs_lat"],["errors","Errors","hs_err"]];
+let hsB=[],hsSel=null,hsW=localStorage.getItem("hsWin")||"24h",hsTimer=null;
+const HSW={"1m":{t:["60 s ago","45 s","30 s","15 s","now"],ms:5000,s:true},"5m":{t:["5 min ago","4 min","3 min","2 min","1 min","now"],ms:15000,s:true},"24h":{t:["24 h ago","18 h","12 h","6 h","now"],ms:30000},"live":{t:[],ms:1000}};if(!HSW[hsW])hsW="24h";
+const hsCls=v=>v<0?"":v>=80?"g":v>=50?"y":"r",hsCol=v=>v<0?"var(--faint)":v>=80?"var(--green)":v>=50?"var(--amber)":"var(--red)";
+$("hsrows").innerHTML=HS.map(([k,l,h])=>`<div class="hsrow"><div class="nm">${l} <button class="q" data-h="${h}">?</button></div><div class="sc" id="hss_${k}">–</div><div class="hsbar" id="hsb_${k}"></div></div>`).join("")+'<div class="hsline" id="hsline"></div>';
+const hsT=t=>new Date(t*1e3).toLocaleTimeString([],HSW[hsW].s?{hour:"2-digit",minute:"2-digit",second:"2-digit"}:{hour:"2-digit",minute:"2-digit"});
+function hsDraw(){if(!hsB.length)return;const n=hsB.length,i=hsSel==null?(hsB[n-1].queries||n<2?n-1:n-2):hsSel,b=hsB[i],sc=b.scores;
+for(const[k]of HS){$("hsb_"+k).innerHTML=hsB.map(x=>`<i class="${hsCls(x.scores[k])}"></i>`).join("");const v=sc[k];$("hss_"+k).textContent=v<0?"–":v;$("hss_"+k).style.color=hsCol(v)}
+const ring=$("hsring");ring.style.setProperty("--hv",Math.max(sc.overall,0));ring.style.setProperty("--hc",hsCol(sc.overall));$("hsv").textContent=sc.overall<0?"–":sc.overall;$("hsv").style.color=hsCol(sc.overall);
+const d=new Date(b.start*1e3);$("hsrange").textContent=d.toLocaleDateString([],{month:"short",day:"numeric"})+", "+hsT(b.start)+" – "+hsT(b.end)+(hsSel==null?" (now)":"");
+$("hsnow").style.display=hsSel==null?"none":"";
+const f=(i+.5)/n*100,bar=$("hsb_upstream"),rows=$("hsrows");$("hsline").style.left=(bar.offsetLeft+bar.offsetWidth*f/100)+"px";$("hsknob").style.left=f+"%";
+$("hsknob").setAttribute("aria-valuemax",n-1);$("hsknob").setAttribute("aria-valuenow",i);$("hsknob").setAttribute("aria-valuetext",$("hsrange").textContent);
+const hr=b.hits+b.misses?Math.round(100*b.hits/(b.hits+b.misses)):0;
+$("hsmet").innerHTML=b.queries?`<span><b>${b.queries.toLocaleString()}</b> queries</span><span><b>${hr}%</b> from cache</span><span><b>${b.timed?Math.round(100*b.fast/b.timed):0}%</b> under 50 ms</span><span><b>${b.failures}</b> failed</span><span><b>${b.up_errors}</b>/${b.up_queries} upstream errors</span>`:"<span>No queries in this window.</span>"}
+function hsPick(x){const r=$("hstrack").getBoundingClientRect(),n=hsB.length;if(!n)return;let i=Math.floor((x-r.left)/r.width*n);i=Math.max(0,Math.min(n-1,i));hsSel=i===n-1?null:i;hsDraw()}
+let hsDrag=false;const tr=$("hstrack");
+tr.addEventListener("pointerdown",e=>{hsDrag=true;tr.setPointerCapture(e.pointerId);hsPick(e.clientX);e.preventDefault()});
+tr.addEventListener("pointermove",e=>{if(hsDrag)hsPick(e.clientX)});
+["pointerup","pointercancel"].forEach(t=>tr.addEventListener(t,()=>hsDrag=false));
+$("hsknob").addEventListener("keydown",e=>{const n=hsB.length;let i=hsSel==null?n-1:hsSel;if(e.key==="ArrowLeft")i--;else if(e.key==="ArrowRight")i++;else if(e.key==="Home")i=0;else if(e.key==="End")i=n-1;else return;e.preventDefault();i=Math.max(0,Math.min(n-1,i));hsSel=i===n-1?null:i;hsDraw()});
+$("hsnow").onclick=()=>{hsSel=null;hsDraw()};
+async function hsLoad(){if(hsW==="live")return;try{const w=hsW,r=await fetch("/api/health"+(w==="24h"?"":"?window="+w));const j=await r.json();if(w!==hsW)return;const prev=hsB.length?hsB[hsB.length-1].start:0;hsB=j.buckets;if(hsSel!=null&&prev&&hsB.length){hsSel=Math.max(0,hsSel-Math.round((hsB[hsB.length-1].start-prev)/j.bucket_sec))}hsDraw()}catch(e){}}
+// ---- v2.6.1 Live graph: 4 stacked strips (queries/s, response ms avg+p95, cache hit %, failures/s) ----
+const HL=[["qps","Queries/sec","var(--accent)",v=>v.toFixed(1)],["avg_ms","Avg response","var(--amber)",v=>v<1?v.toFixed(2)+" ms":v.toFixed(0)+" ms","p95_ms"],["hit_pct","Cache hit","var(--green)",v=>v.toFixed(0)+"%"],["fail_ps","Failures/sec","var(--red)",v=>v.toFixed(2)],["cpu_proc","GoProxy CPU","var(--purple)",v=>v<0||v==null?"–":v<10?v.toFixed(1)+"%":v.toFixed(0)+"%","cpu_host","host"],["clients","Active clients","#14b8a6",v=>v==null?"–":Math.round(v).toString()]];
+let hlIPs=null,hlP=[],hlRaf=0,hlLast=0,hlLegT=0,hlOff=0,hlSz="";const hlEase={},hlMx={};
+// monotone cubic (Fritsch-Carlson): smooth, never overshoots the data (so no dips below 0)
+function hlCurve(g,P){const n=P.length;if(!n)return;g.moveTo(P[0][0],P[0][1]);if(n<3){for(const p of P)g.lineTo(p[0],p[1]);return}
+const d=[],m=[];for(let i=0;i<n-1;i++){const dx=P[i+1][0]-P[i][0];d.push(dx?(P[i+1][1]-P[i][1])/dx:0)}
+m[0]=d[0];m[n-1]=d[n-2];for(let i=1;i<n-1;i++)m[i]=d[i-1]*d[i]<=0?0:(d[i-1]+d[i])/2;
+for(let i=0;i<n-1;i++){if(!d[i]){m[i]=m[i+1]=0;continue}const a=m[i]/d[i],b=m[i+1]/d[i],h=a*a+b*b;if(h>9){const t=3/Math.sqrt(h);m[i]=t*a*d[i];m[i+1]=t*b*d[i]}}
+for(let i=0;i<n-1;i++){const dx=(P[i+1][0]-P[i][0])/3;g.bezierCurveTo(P[i][0]+dx,P[i][1]+m[i]*dx,P[i+1][0]-dx,P[i+1][1]-m[i+1]*dx,P[i+1][0],P[i+1][1])}}
+function hlDraw(){const c=$("hlc"),dpr=devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;if(!W)return;const sz=W+"x"+H+"@"+dpr;if(sz!==hlSz){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);hlSz=sz}
+const g=c.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+const pr=$("hlleg"),col=v=>{pr.style.color=v;const c=getComputedStyle(pr).color;pr.style.color="";return c},rh=H/HL.length;
+// continuous scroll: "now" is client time corrected by the server-clock offset, minus 1 s so the newest point slides in from the right edge
+const now=Date.now()/1e3+hlOff-1,x=t=>W-(now-t)/120*W,PL=hlP.filter(p=>p.t>=now-122);
+g.font="11px system-ui,sans-serif";g.lineJoin="round";g.lineCap="round";
+HL.forEach(([k,l,cl,f,k2,k2l],ri)=>{const y0=ri*rh+16,h=rh-24;let tm=k==="hit_pct"?100:Math.max(k==="clients"?2:1e-9,...PL.map(p=>Math.max(p[k]||0,k2?p[k2]||0:0)))*1.15;
+hlMx[k]=hlMx[k]?hlMx[k]+(tm-hlMx[k])*.12:tm;const mx=hlMx[k];
+g.strokeStyle=col("var(--faint)");g.lineWidth=1;g.globalAlpha=.18;g.setLineDash([2,4]);g.beginPath();for(const fr of[0,.5])g.moveTo(0,Math.round(y0+fr*h)+.5),g.lineTo(W,Math.round(y0+fr*h)+.5);g.stroke();g.setLineDash([]);g.globalAlpha=.3;g.beginPath();g.moveTo(0,Math.round(y0+h)+.5);g.lineTo(W,Math.round(y0+h)+.5);g.stroke();g.globalAlpha=1;
+const cc=col(cl),segs=kk=>{const S=[];let seg=[];for(const p of PL){if((kk==="hit_pct"&&!p.answers)||p[kk]==null||p[kk]<0){if(seg.length)S.push(seg);seg=[];continue}seg.push([x(p.t),y0+h-Math.min(p[kk]/mx,1)*h])}if(seg.length)S.push(seg);return S};
+const line=(kk,a,dash,fill)=>{const S=segs(kk);if(fill){const gr=g.createLinearGradient(0,y0,0,y0+h);gr.addColorStop(0,cc.replace(/^rgb\((.*)\)$/,"rgba($1,.32)"));gr.addColorStop(1,cc.replace(/^rgb\((.*)\)$/,"rgba($1,0)"));g.fillStyle=gr;
+for(const sg of S){if(sg.length<2)continue;g.beginPath();hlCurve(g,sg);g.lineTo(sg[sg.length-1][0],y0+h);g.lineTo(sg[0][0],y0+h);g.closePath();g.fill()}}
+g.strokeStyle=cc;g.globalAlpha=a;g.setLineDash(dash);g.lineWidth=fill?2:1.4;g.beginPath();for(const sg of S)hlCurve(g,sg);g.stroke();g.setLineDash([]);g.globalAlpha=1;
+const sg=S[S.length-1],e=sg&&sg[sg.length-1];if(fill&&e&&e[0]>W-8){g.fillStyle=cc;g.beginPath();g.arc(Math.min(e[0],W-3),e[1],3,0,7);g.fill()}};
+if(k2)line(k2,.5,[3,3],false);line(k,1,[],true);
+g.fillStyle=col("var(--muted)");g.globalAlpha=.75;g.fillText(l+(k2?" · dashed "+(k2l||"p95"):""),6,y0-4);const mt=f(k==="hit_pct"?100:mx/1.15);g.fillText(mt,W-g.measureText(mt).width-6,y0-4);g.globalAlpha=1});
+g.globalAlpha=.6;g.fillText("2 min",6,H-2);g.fillText("now",W-24,H-2);g.globalAlpha=1}
+function hlLeg(dt){const L=hlP[hlP.length-1];if(!L)return;const a=1-Math.exp(-dt/250);
+for(const[k,,,,k2]of HL)for(const kk of k2?[k,k2]:[k]){const v=L[kk];if(v==null||v<0){hlEase[kk]=v;continue}hlEase[kk]=hlEase[kk]==null?v:hlEase[kk]+(v-hlEase[kk])*a}
+const t=performance.now();if(t-hlLegT<100)return;hlLegT=t;
+$("hlleg").innerHTML=HL.map(([k,l,cl,f,k2,k2l])=>`<div style="min-width:120px"><div class="small" style="display:flex;align-items:center;gap:6px"><i style="width:8px;height:8px;border-radius:50%;background:${cl};display:inline-block"></i>${l}</div><div style="font-size:24px;font-weight:650;line-height:1.2;color:${cl};font-variant-numeric:tabular-nums">${f(hlEase[k])}</div>${k2?`<div class="small">${k2l||"p95"} ${f(hlEase[k2])}</div>`:""}${k==="cpu_proc"&&L.mem_mb?`<div class="small">mem ${L.mem_mb.toFixed(0)} MB${L.host_mem_pct>=0?" · host "+L.host_mem_pct.toFixed(0)+"%":""}</div>`:""}${k==="clients"&&hlIPs?`<div class="small" title="${hlIPs.join(", ")}">${hlIPs.slice(0,3).join(", ")}${hlIPs.length>3?" …":""}</div>`:""}</div>`).join("")}
+function hlFrame(t){hlRaf=0;if(hsW!=="live"||document.hidden)return;hlRaf=requestAnimationFrame(hlFrame);if(t-hlLast<30)return;const dt=hlLast?t-hlLast:33;hlLast=t;hlDraw();hlLeg(dt)}
+function hlStart(){if(!hlRaf&&hsW==="live"&&!document.hidden){hlLast=0;hlRaf=requestAnimationFrame(hlFrame)}}
+document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(hlRaf);hlRaf=0}else{hlLoad();hlStart()}});
+async function hlLoad(){if(document.hidden)return;try{const r=await fetch("/api/health/live");if(hsW!=="live")return;const J=await r.json();hlP=J.points||[];hlIPs=J.client_ips||null;const L=hlP[hlP.length-1];if(L){const o=L.t+1-Date.now()/1e3;hlOff=Math.abs(o-hlOff)>2?o:hlOff+(o-hlOff)*.2}hlStart();$("hsrange").textContent=hlP.length?"Live · "+hlP.length+" s":"Live · starting…"}catch(e){}}
+function hsSetW(w){hsW=w;localStorage.setItem("hsWin",w);hsB=[];hsSel=null;const lv=w==="live";$("hslive").style.display=lv?"":"none";$("hsmain").style.display=lv?"none":"";$("hsnow").style.display="none";
+for(const b of $("hswin").querySelectorAll("button")){const on=b.dataset.w===w;b.setAttribute("aria-pressed",on);b.style.fontWeight=on?"650":""}
+clearInterval(hsTimer);if(lv){hlP=[];$("hsrange").textContent="Live · starting…";for(const k in hlEase)delete hlEase[k];for(const k in hlMx)delete hlMx[k];hsTimer=setInterval(hlLoad,1000);hlLoad();return}
+$("hsticks").innerHTML=HSW[w].t.map(x=>`<span>${x}</span>`).join("");hsTimer=setInterval(hsLoad,HSW[w].ms);hsLoad()}
+$("hswin").querySelectorAll("button").forEach(b=>b.onclick=()=>hsSetW(b.dataset.w));
+hsSetW(hsW);addEventListener("resize",()=>hsW==="live"?hlDraw():hsDraw());
+})();
+</script><script src="/v24.js"></script><script src="/v26.js"></script><script src="/v27.js"></script><script src="/v28.js"></script><script src="/v281.js"></script><script src="/v282.js"></script>
+</body></html>

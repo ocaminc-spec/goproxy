@@ -1,0 +1,17 @@
+# build output
+dist/
+*.bin
+*.tar
+*.tgz
+goproxy
+goproxy-*-linux-*
+# secrets / keys
+.env
+.env.*
+keys/
+*.key
+*.pem
+# runtime data
+data/
+goproxy-data/
+*.json.bak

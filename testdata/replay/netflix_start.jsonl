@@ -1,0 +1,16 @@
+{"comment": "Hand-written: Netflix app start."}
+{"t_ms": 0, "client": "192.168.1.60", "name": "netflix.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 25, "client": "192.168.1.60", "name": "netflix.com.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 50, "client": "192.168.1.60", "name": "www.netflix.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 75, "client": "192.168.1.60", "name": "www.netflix.com.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 100, "client": "192.168.1.60", "name": "api-global.netflix.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 125, "client": "192.168.1.60", "name": "api-global.netflix.com.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 150, "client": "192.168.1.60", "name": "assets.nflxext.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 175, "client": "192.168.1.60", "name": "assets.nflxext.com.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 200, "client": "192.168.1.60", "name": "occ-0-1234-999.1.nflxso.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 225, "client": "192.168.1.60", "name": "occ-0-1234-999.1.nflxso.net.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 250, "client": "192.168.1.60", "name": "ipv4-c001-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 275, "client": "192.168.1.60", "name": "ipv4-c001-mia001-ix.1.oca.nflxvideo.net.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 300, "client": "192.168.1.60", "name": "ipv4-c002-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 325, "client": "192.168.1.60", "name": "ipv4-c002-mia001-ix.1.oca.nflxvideo.net.", "qtype": "AAAA", "do_bit": false, "edns_size": 1232}
+{"t_ms": 350, "client": "192.168.1.60", "name": "www.netflix.com.", "qtype": "HTTPS", "do_bit": false, "edns_size": 1232}

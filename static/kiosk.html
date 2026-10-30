@@ -1,0 +1,51 @@
+<!-- Copyright (c) 2026 Ocam. SPDX-License-Identifier: AGPL-3.0-only -->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GoProxy · Home status</title><meta name="robots" content="noindex">
+<style>
+:root{color-scheme:dark;--bg:#0b0f17;--card:#141b27;--edge:#243044;--text:#e8eef8;--muted:#8fa0b8;--good:#3ddc84;--warn:#ffc04d;--bad:#ff5d5d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:24px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--muted);font-size:14px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:18px}
+.card{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:20px}
+.big{font-size:64px;font-weight:700;line-height:1}.lbl{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.dev{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--edge);font-size:17px}.dev:last-child{border:0}
+.banner{background:#3a1d1d;border:1px solid var(--bad);border-radius:14px;padding:14px 18px;margin-top:16px;font-size:18px}
+.parts{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:14px}.parts b{color:var(--text)}
+form{display:grid;gap:10px;max-width:320px;margin:60px auto}input,button{font-size:18px;padding:14px;border-radius:12px;border:1px solid var(--edge);background:var(--card);color:var(--text)}button{background:#2f6fe4;border:0;font-weight:600}
+</style></head><body><div class="wrap">
+<h1>Home network</h1><div class="sub" id="sub">loading…</div>
+<div id="login" hidden><form id="f"><div class="lbl">View-only password</div><input type="password" id="pw" autocomplete="current-password" required><button>Show status</button><div class="sub" id="msg"></div></form></div>
+<div id="off" class="card" hidden style="margin-top:20px">The kiosk page is switched off. Turn it on in the dashboard: Advanced · Features · Kiosk.</div>
+<div id="main" hidden>
+<div id="banner"></div>
+<div class="grid">
+<div class="card"><div class="lbl">Health</div><div class="big" id="hs">–</div><div class="parts" id="parts"></div></div>
+<div class="card"><div class="lbl">Internet</div><div class="big" id="net">–</div><div class="sub" id="netsub"></div></div>
+<div class="card"><div class="lbl">DNS self-test</div><div class="big" id="can">–</div><div class="sub" id="ipst"></div></div>
+</div>
+<div class="grid"><div class="card"><div class="lbl">Who's online</div><div id="devs"></div></div>
+<div class="card"><div class="lbl">Recent outages</div><div id="outs"></div></div></div>
+</div></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function ago(s){if(s<0)return"not seen";if(s<90)return"now";if(s<3600)return Math.round(s/60)+" min ago";if(s<86400)return Math.round(s/3600)+" h ago";return Math.round(s/86400)+" d ago"}
+function cls(v){return v<0?"":v>=80?"good":v>=50?"warn":"bad"}
+async function load(){let r;try{r=await fetch("/api/kiosk",{cache:"no-store"})}catch(e){$("sub").textContent="GoProxy is not answering";return}
+const j=await r.json().catch(()=>({}));
+if(j.enabled===false){$("off").hidden=false;$("main").hidden=true;$("login").hidden=true;$("sub").textContent="";return}
+if(r.status===401){$("login").hidden=!j.login;$("main").hidden=true;$("sub").textContent=j.login?"":"Sign in to the dashboard on this device, or set a kiosk password in Advanced.";return}
+$("login").hidden=true;$("main").hidden=false;$("off").hidden=true;
+$("sub").textContent="GoProxy DNS v"+j.version+" · updated "+new Date(j.time).toLocaleTimeString();
+const h=j.health||{};$("hs").textContent=h.overall<0?"–":h.overall;$("hs").className="big "+cls(h.overall);
+$("parts").innerHTML=[["Upstream",h.upstream],["Cache",h.cache],["Latency",h.latency],["Errors",h.errors]].map(([n,v])=>`<span>${n} <b class="${cls(v)}">${v<0?"–":v}</b></span>`).join("");
+$("net").textContent=j.internet_down?"Down":"Up";$("net").className="big "+(j.internet_down?"bad":"good");
+$("netsub").textContent=j.internet_down?"Cached answers are still served":"";
+$("can").textContent=j.canary_ok?"OK":"Failing";$("can").className="big "+(j.canary_ok?"good":"bad");
+$("ipst").textContent=j.ip_state==="changed"?"GoProxy PC address changed!":j.ip_state==="no_lan"?"GoProxy PC is offline":"";
+$("banner").innerHTML=(j.alerts||[]).map(a=>`<div class="banner">⚠ ${esc(a)}</div>`).join("");
+const d=j.devices||[];$("devs").innerHTML=d.length?d.map(x=>`<div class="dev"><span>${esc(x.name)} <span class="sub">${esc(x.group)}</span></span><span class="${x.quiet?"bad":""}">${x.quiet?"quiet · ":""}${ago(x.ago_sec)}</span></div>`).join(""):'<div class="sub">No devices yet</div>';
+const o=j.outages||[];$("outs").innerHTML=o.length?o.map(x=>`<div class="dev"><span>${new Date(x.start).toLocaleString()}</span><span class="${x.ongoing?"bad":""}">${x.ongoing?"ongoing":x.minutes+" min"} · ${esc(x.kind)}</span></div>`).join(""):'<div class="sub">No outages recorded</div>'}
+$("f").onsubmit=async e=>{e.preventDefault();const r=await fetch("/api/kiosk/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("pw").value})});const j=await r.json().catch(()=>({}));if(r.ok){$("pw").value="";load()}else $("msg").textContent=j.error||"failed"};
+load();setInterval(load,10000);
+</script></body></html>

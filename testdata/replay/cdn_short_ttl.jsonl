@@ -1,0 +1,25 @@
+{"comment": "Hand-written: CDN names with 5-30 s TTLs must keep their real TTL (min-ttl exempt)."}
+{"t_ms": 0, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 0, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 4000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 4000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 8000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 8000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 12000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 12000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 16000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 16000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 20000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 20000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 24000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 24000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 28000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 28000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 32000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 32000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 36000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 36000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 40000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 40000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 44000, "client": "192.168.1.50", "name": "rr5---sn-ab5l6nr6.googlevideo.com.", "qtype": "A", "do_bit": false, "edns_size": 1232}
+{"t_ms": 44000, "client": "192.168.1.50", "name": "ipv4-c009-mia001-ix.1.oca.nflxvideo.net.", "qtype": "A", "do_bit": false, "edns_size": 1232}

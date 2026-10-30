@@ -1,0 +1,22 @@
+# Copyright (c) 2026 Ocam. SPDX-License-Identifier: AGPL-3.0-only
+# GoProxy DNS – example Docker Compose file. Host networking is simplest (the server needs port 53).
+services:
+  goproxy:
+    image: goproxy:2.8.2
+    container_name: goproxy
+    restart: unless-stopped
+    network_mode: host
+    mem_limit: 1536m            # cache-mb + ~1 GB headroom
+    command:
+      - -dns-addr=:53
+      - -http-addr=:8053
+      - -profile=max
+      - -cache-mb=500
+      - -min-ttl=60s
+      - -plain-fallback=true
+      - -parallel-all=true
+      # - -ptr-server=192.168.1.1   # your router, for device names and automatic .home names
+    volumes:
+      - ./goproxy-data:/data
+    environment:
+      TZ: UTC
